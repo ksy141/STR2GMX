@@ -1,0 +1,10 @@
+*.pyc
+*/*.pyc
+__pycache__
+*/__pycache__
+*/*.so
+*/*.c
+*/build
+*.swp
+*/*.swp
+*DS_Store
