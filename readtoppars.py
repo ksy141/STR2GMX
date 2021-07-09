@@ -7,7 +7,7 @@ from   MDAnalysis.topology.tables import SYMB2Z
 comment = '!'
 kcal2kJ = 4.184
 #items   = ('RESI', 'ATOMS', 'BONDS', 'ANGLES', 'DIHEDRALS', 'IMPROPER', 'NONBONDED', 'NBFIX', 'CMAP') 
-items   = ('RESI', 'BONDS', 'ANGLES', 'DIHEDRALS', 'IMPROPER', 'NONBONDED', 'NBFIX', 'CMAP') 
+items   = ('RESI', 'BONDS', 'ANGLES', 'DIHEDRALS', 'IMPROPER', 'NONBONDED', 'NBFIX', 'CMAP', 'PRES') 
 
 
 class ReadToppars:
@@ -83,7 +83,7 @@ class ReadToppars:
                             saves.append(save)
                             save = ''
 
-                            if sline.startswith('RESI'):
+                            if sline.startswith(('RESI', 'PRES')):
                                 self.topparmols[toppar_name].append(sline.split()[1])
 
                         if sline.startswith(('END', 'end')):
@@ -130,7 +130,7 @@ class ReadToppars:
             if not save: continue
             ssave = save.rstrip().split('\n')
 
-            if save.startswith('RESI'):
+            if save.startswith(('RESI', 'PRES')):
                 self._read_RESI(ssave)
 
             #elif save.startswith('ATOMS'):
@@ -159,11 +159,13 @@ class ReadToppars:
     def _read_RESI(self, ssave):
         resname = ssave[0].split()[1]
 
-        names   = []
-        types   = []
-        charges = []
-        bonds   = []
-        imprs   = []
+        names     = []
+        types     = []
+        charges   = []
+        bonds     = []
+        imprs     = []
+        angles    = []
+        dihedrals = []
 
         for line in ssave:
             segments = line.split()
@@ -177,6 +179,14 @@ class ReadToppars:
                 for i in range(0, len(segments[1:]), 2):
                     bonds.append([segments[i+1], segments[i+2]])
 
+            elif line.startswith('ANGL'):
+                for i in range(0, len(segments[1:]), 3):
+                    angles.append([segments[i+1], segments[i+2], segments[i+3]])
+
+            elif line.startswith('DIHE'):
+                for i in range(0, len(segments[1:]), 4):
+                    dihedrals.append([segments[i+1], segments[i+2], segments[i+3], segments[i+4]])
+
             elif line.startswith('IMPR'):
                 for i in range(0, len(segments[1:]), 4):
                     imprs.append([segments[i+1], segments[i+2], segments[i+3], segments[i+4]])
@@ -189,11 +199,13 @@ class ReadToppars:
                     out += '{:<50}: {:<10}'.format(key, resname)
             print(out + '\n')
 
-        self.RESI[resname] = {'names':   np.array(names), 
-                              'types':   np.array(types), 
-                              'bonds':   np.array(bonds), 
-                              'imprs':   np.array(imprs),
-                              'charges': np.array(charges)}
+        self.RESI[resname] = {'names':     np.array(names), 
+                              'types':     np.array(types), 
+                              'bonds':     np.array(bonds),
+                              'imprs':     np.array(imprs),
+                              'charges':   np.array(charges),
+                              'angles':    np.array(angles),
+                              'dihedrals': np.array(dihedrals)}
 
 
 
