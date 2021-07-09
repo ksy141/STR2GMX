@@ -1,31 +1,49 @@
 import numpy  as np
 import pandas as pd
 import glob
-
+import os
+from   MDAnalysis.topology.tables import SYMB2Z
 
 comment = '!'
 kcal2kJ = 4.184
-items   = ('RESI', 'ATOMS', 'BONDS', 'ANGLES', 'DIHEDRALS', 'IMPROPER', 'NONBONDED', 'NBFIX', 'CMAP') 
+#items   = ('RESI', 'ATOMS', 'BONDS', 'ANGLES', 'DIHEDRALS', 'IMPROPER', 'NONBONDED', 'NBFIX', 'CMAP') 
+items   = ('RESI', 'BONDS', 'ANGLES', 'DIHEDRALS', 'IMPROPER', 'NONBONDED', 'NBFIX', 'CMAP') 
 
 
 class ReadToppars:
 
-    def __init__(self, toppars=None):
+    def __init__(self, toppars=None, verbose=False):
         
         # a list of files to read
         if isinstance(toppars, list):
             pass
         
         # indicate a path
-        elif isinstance(toppars, str):
+        elif os.path.isdir(toppars):
             toppars = glob.glob(toppars + '/*rtf') + \
                       glob.glob(toppars + '/*prm') + \
-                      glob.glob(toppars + '/*str') 
+                      glob.glob(toppars + '/*str')
+
+        elif os.path.isfile(toppars):
+            p = os.path.dirname(toppars)
+
+            with open(toppars) as f:
+                tops = []
+
+                for line in f.readlines():
+                    if line.startswith(('open', 'stream')):
+                        tops.append(p + '/' + line.split()[-1])
+            
+            toppars = tops           
+
 
         if not toppars:
             raise ValueError('please provide a list of top/prm/str or a path to them')
         
+        self.verbose = verbose
         print(pd.DataFrame([toppar.split('/')[-1] for toppar in toppars]))
+
+
         self.toppars = toppars
         self.parse()
         self.collect()
@@ -37,9 +55,14 @@ class ReadToppars:
 
         save  = ''
         saves = []
+        atoms = []
+        self.topparmols = {}
 
         read_type = False
         for toppar in self.toppars:
+            toppar_name = toppar.split('/')[-1]
+            self.topparmols[toppar_name] = []
+
             for line in open(toppar, 'r'):
 
                 rline = line.rstrip()
@@ -51,10 +74,17 @@ class ReadToppars:
                         if sline.startswith('HBOND'):
                             continue
 
+                        if sline.startswith('MASS'):
+                            atoms.append(sline.split())
+                            continue
+
                         if sline.startswith(items):
                             read_type = sline.split()[0]
                             saves.append(save)
                             save = ''
+
+                            if sline.startswith('RESI'):
+                                self.topparmols[toppar_name].append(sline.split()[1])
 
                         if sline.startswith(('END', 'end')):
                             read_type = False
@@ -67,7 +97,8 @@ class ReadToppars:
                                 save += sline
                             else:
                                 save += sline + '\n'
-
+        
+        self.atoms = atoms
         self.saves = saves
 
 
@@ -83,6 +114,17 @@ class ReadToppars:
         self.NB14      = {}
         self.NBFIX     = {}
 
+        for atom in self.atoms:
+            if len(atom) == 4: continue
+            if atom[4] == 'X': continue
+
+            atomtype = atom[2]
+            atommass = float(atom[3])
+            atomelem = atom[4].capitalize()
+            self.ATOMS[atomtype] = {}
+            self.ATOMS[atomtype]['mass'] = atommass
+            self.ATOMS[atomtype]['elem'] = atomelem
+            self.ATOMS[atomtype]['numb'] = SYMB2Z[atomelem]
 
         for save in self.saves:
             if not save: continue
@@ -91,8 +133,8 @@ class ReadToppars:
             if save.startswith('RESI'):
                 self._read_RESI(ssave)
 
-            elif save.startswith('ATOMS'):
-                self._read_ATOMS(ssave)
+            #elif save.startswith('ATOMS'):
+            #    self._read_ATOMS(ssave)
 
             elif save.startswith('BONDS'):
                 self._read_BONDS(ssave)
@@ -131,7 +173,7 @@ class ReadToppars:
                 types.append(segments[2])
                 charges.append(float(segments[3]))
 
-            elif line.startswith(('BOND', 'DOUBLE')):
+            elif line.startswith(('BOND', 'DOUB')):
                 for i in range(0, len(segments[1:]), 2):
                     bonds.append([segments[i+1], segments[i+2]])
 
@@ -139,12 +181,19 @@ class ReadToppars:
                 for i in range(0, len(segments[1:]), 4):
                     imprs.append([segments[i+1], segments[i+2], segments[i+3], segments[i+4]])
 
+        
+        if resname in self.RESI.keys() and self.verbose:
+            out = 'Duplicated residue name: ' + resname + '\n'
+            for key, value in self.topparmols.items():
+                if resname in value:
+                    out += '{:<50}: {:<10}'.format(key, resname)
+            print(out + '\n')
 
-        self.RESI[resname] = {'names':   names, 
-                              'types':   types, 
-                              'bonds':   bonds, 
-                              'imprs':   imprs,
-                              'charges': charges}
+        self.RESI[resname] = {'names':   np.array(names), 
+                              'types':   np.array(types), 
+                              'bonds':   np.array(bonds), 
+                              'imprs':   np.array(imprs),
+                              'charges': np.array(charges)}
 
 
 
@@ -209,7 +258,13 @@ class ReadToppars:
             type2 = segments[1]
             type3 = segments[2]
             type4 = segments[3]
-            
+
+            if type1 > type4:
+                type1, type2, type3, type4 = type4, type3, type2, type1
+
+            if type1 == type4 and type2 > type3:
+                type2, type3 = type3, type2
+
             cp   = float(segments[4]) * kcal2kJ
             mult = int(segments[5])
             phi0 = float(segments[6])
@@ -218,12 +273,6 @@ class ReadToppars:
                 for imult, dihedral in enumerate(self.DIHEDRALS[type1, type2, type3, type4]):
                     if dihedral[2] == mult: del self.DIHEDRALS[type1, type2, type3, type4][imult]
                 self.DIHEDRALS[type1, type2, type3, type4].append([phi0, cp, mult])
-
-
-            elif (type4, type3, type2, type1) in self.DIHEDRALS:
-                for imult, dihedral in enumerate(self.DIHEDRALS[type4, type3, type2, type1]):
-                    if dihedral[2] == mult: del self.DIHEDRALS[type4, type3, type2, type1][imult]
-                self.DIHEDRALS[type4, type3, type2, type1].append([phi0, cp, mult])
 
             else:
                 self.DIHEDRALS[type1, type2, type3, type4] = [[phi0, cp, mult]]
@@ -238,6 +287,9 @@ class ReadToppars:
             type2 = segments[1]
             type3 = segments[2]
             type4 = segments[3]
+            
+            if type1 > type4:
+                type1, type2, type3, type4 = type4, type3, type2, type1
 
             cq = float(segments[4]) * 2 * kcal2kJ
             q0 = float(segments[6])
