@@ -1,0 +1,45 @@
+# This file was created Sat Jul 10 23:37:28 2021
+# Created by:
+#                      :-) GROMACS - gmx energy, 2018.8 (-:
+# 
+# Executable:   /usr/local/gromacs/bin/gmx
+# Data prefix:  /usr/local/gromacs
+# Working dir:  /Users/siyoungkim/STR2GMX/examples/multicomponent/C36.str2gmx.gromacs
+# Command line:
+#   gmx energy -f step7.edr -o energy/LJ14.xvg
+# gmx energy is part of G R O M A C S:
+#
+# God Rules Over Mankind, Animals, Cosmos and Such
+#
+@    title "GROMACS Energies"
+@    xaxis  label "Time (ps)"
+@    yaxis  label "(kJ/mol)"
+@TYPE xy
+@ view 0.15, 0.15, 0.75, 0.85
+@ legend on
+@ legend box on
+@ legend loctype view
+@ legend 0.78, 0.8
+@ legend length 2
+@ s0 legend "LJ-14"
+    0.000000  920.273682
+    0.200000  798.102051
+    0.400000  828.263794
+    0.600000  826.470032
+    0.800000  766.081787
+    1.000000  823.493469
+    1.200000  716.257812
+    1.400000  795.758850
+    1.600000  770.511719
+    1.800000  782.175781
+    2.000000  705.423889
+    2.200000  794.132874
+    2.400000  748.534973
+    2.600000  793.518311
+    2.800000  817.790344
+    3.000000  772.109314
+    3.200000  727.013794
+    3.400000  781.348633
+    3.600000  775.719482
+    3.800000  794.564087
+    4.000000  751.596069

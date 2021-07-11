@@ -147,6 +147,7 @@ class Molecule:
 
                 ids4 = np.concatenate([bonds[:,1][bA3l], bonds[:,0][bA3r]])
                 ids4 = np.delete(ids4, np.isin(ids4, ids2))
+                ids4 = np.delete(ids4, np.isin(ids4, ids3)) #cholesterol pentagon
                 if len(ids4) == 0: continue
 
                 for idx4 in ids4:

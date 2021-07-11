@@ -1,0 +1,45 @@
+# This file was created Sat Jul 10 23:37:28 2021
+# Created by:
+#                      :-) GROMACS - gmx energy, 2018.8 (-:
+# 
+# Executable:   /usr/local/gromacs/bin/gmx
+# Data prefix:  /usr/local/gromacs
+# Working dir:  /Users/siyoungkim/STR2GMX/examples/multicomponent/C36.str2gmx.gromacs
+# Command line:
+#   gmx energy -f step7.edr -o energy/CB14.xvg
+# gmx energy is part of G R O M A C S:
+#
+# GROwing Monsters And Cloning Shrimps
+#
+@    title "GROMACS Energies"
+@    xaxis  label "Time (ps)"
+@    yaxis  label "(kJ/mol)"
+@TYPE xy
+@ view 0.15, 0.15, 0.75, 0.85
+@ legend on
+@ legend box on
+@ legend loctype view
+@ legend 0.78, 0.8
+@ legend length 2
+@ s0 legend "Coulomb-14"
+    0.000000  2972.769043
+    0.200000  2600.422607
+    0.400000  2382.813721
+    0.600000  2424.221191
+    0.800000  2355.426025
+    1.000000  2380.597168
+    1.200000  2448.061768
+    1.400000  1994.906738
+    1.600000  2301.433105
+    1.800000  2314.304199
+    2.000000  2273.630615
+    2.200000  2398.617432
+    2.400000  2306.691406
+    2.600000  2214.387939
+    2.800000  2482.180420
+    3.000000  2424.811523
+    3.200000  2375.261719
+    3.400000  2234.622559
+    3.600000  2376.467773
+    3.800000  2374.208740
+    4.000000  2411.934082

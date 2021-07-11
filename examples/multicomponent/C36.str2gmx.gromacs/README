@@ -1,0 +1,5 @@
+#!/bin/bash
+
+gmx grompp -f step7.mdp -c ../C36.charmm-gui.gromacs/step6.gro -o step7.tpr
+gmx mdrun -deffnm step7 -v -rerun ../C36.charmm-gui.gromacs/step7.trr
+

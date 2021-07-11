@@ -1,0 +1,15 @@
+#!/bin/bash
+
+gmx_mpi grompp -f step6.0_minimization.mdp -c step5_input.gro -o step6.0_minimization.tpr 
+mpirun gmx_mpi mdrun -deffnm step6.0_minimization -v
+
+gmx_mpi grompp -f step6.1_equilibration.mdp -c step6.0_minimization.gro -o step6.1_equilibration.tpr -n index.ndx
+mpirun gmx_mpi mdrun -deffnm step6.1_equilibration -v 
+
+gmx_mpi grompp -f step6.2_equilibration.mdp -c step6.1_minimization.gro -o step6.2_equilibration.tpr -n index.ndx
+mpirun gmx_mpi mdrun -deffnm step6.2_equilibration -v 
+
+gmx_mpi grompp -f step7.mdp -c step6.2_minimization.gro -o step7.tpr -n index.ndx
+mpirun gmx_mpi mdrun -deffnm step7 -v 
+
+

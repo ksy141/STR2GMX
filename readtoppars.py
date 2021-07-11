@@ -3,11 +3,13 @@ import pandas as pd
 import glob
 import os
 from   MDAnalysis.topology.tables import SYMB2Z
+import MDAnalysis
+from   .atomdata import elements, masses
 
 comment = '!'
 kcal2kJ = 4.184
-#items   = ('RESI', 'ATOMS', 'BONDS', 'ANGLES', 'DIHEDRALS', 'IMPROPER', 'NONBONDED', 'NBFIX', 'CMAP') 
-items   = ('RESI', 'BONDS', 'ANGLES', 'DIHEDRALS', 'IMPROPER', 'NONBONDED', 'NBFIX', 'CMAP', 'PRES') 
+items   = ('RESI', 'ATOMS', 'BONDS', 'ANGLES', 'DIHEDRALS', 'IMPROPER', 'NONBONDED', 'NBFIX', 'CMAP') 
+#items   = ('RESI', 'BONDS', 'ANGLES', 'DIHEDRALS', 'IMPROPER', 'NONBONDED', 'NBFIX', 'CMAP', 'PRES') 
 
 
 class ReadToppars:
@@ -45,6 +47,7 @@ class ReadToppars:
 
 
         self.toppars = toppars
+        self.topparmols = {}
         self.parse()
         self.collect()
 
@@ -56,7 +59,6 @@ class ReadToppars:
         save  = ''
         saves = []
         atoms = []
-        self.topparmols = {}
 
         read_type = False
         for toppar in self.toppars:
@@ -90,6 +92,9 @@ class ReadToppars:
                             read_type = False
                             saves.append(save)
                             save = ''
+                            #break 
+                            # needed for if/endif in cholesterol...
+                            # two CHL1 models are defined.
                         
                         # READ EACH COMPONENT
                         if read_type:
@@ -115,16 +120,22 @@ class ReadToppars:
         self.NBFIX     = {}
 
         for atom in self.atoms:
-            if len(atom) == 4: continue
-            if atom[4] == 'X': continue
+            #if len(atom) == 5: continue # don't read an atom line with element
 
             atomtype = atom[2]
             atommass = float(atom[3])
-            atomelem = atom[4].capitalize()
+            
+            diffmass = np.abs(masses - atommass)
+            numb = np.argmin(diffmass)
+            elem = elements[numb]
+            if diffmass[numb] > 1:
+                print('confirm: atomtype (%s) and atomelem (%s)' %(atomtype, elem))
+
             self.ATOMS[atomtype] = {}
             self.ATOMS[atomtype]['mass'] = atommass
-            self.ATOMS[atomtype]['elem'] = atomelem
-            self.ATOMS[atomtype]['numb'] = SYMB2Z[atomelem]
+            self.ATOMS[atomtype]['elem'] = elem
+            #self.ATOMS[atomtype]['numb'] = SYMB2Z[atomelem]
+            self.ATOMS[atomtype]['numb'] = numb
 
         for save in self.saves:
             if not save: continue
@@ -158,7 +169,7 @@ class ReadToppars:
 
     def _read_RESI(self, ssave):
         resname = ssave[0].split()[1]
-
+        
         names     = []
         types     = []
         charges   = []
@@ -270,24 +281,38 @@ class ReadToppars:
             type2 = segments[1]
             type3 = segments[2]
             type4 = segments[3]
-
-            if type1 > type4:
-                type1, type2, type3, type4 = type4, type3, type2, type1
-
-            if type1 == type4 and type2 > type3:
-                type2, type3 = type3, type2
-
             cp   = float(segments[4]) * kcal2kJ
             mult = int(segments[5])
             phi0 = float(segments[6])
-            
-            if (type1, type2, type3, type4) in self.DIHEDRALS:
-                for imult, dihedral in enumerate(self.DIHEDRALS[type1, type2, type3, type4]):
-                    if dihedral[2] == mult: del self.DIHEDRALS[type1, type2, type3, type4][imult]
-                self.DIHEDRALS[type1, type2, type3, type4].append([phi0, cp, mult])
 
+
+            #if type1 > type4:
+            #    type1, type2, type3, type4 = type4, type3, type2, type1
+
+            #if type1 == type4 and type2 > type3:
+            #    type2, type3 = type3, type2
+            
+            i4   = (type1, type2, type3, type4)
+            j4   = (type4, type3, type2, type1)
+            
+            if i4 in self.DIHEDRALS:
+                for imult, dihedral in enumerate(self.DIHEDRALS[i4]):
+                    if dihedral[2] == mult: del self.DIHEDRALS[i4][imult]
+                self.DIHEDRALS[i4].append([phi0, cp, mult])
+            elif j4 in self.DIHEDRALS:
+                for imult, dihedral in enumerate(self.DIHEDRALS[j4]):
+                    if dihedral[2] == mult: del self.DIHEDRALS[j4][imult]
+                self.DIHEDRALS[j4].append([phi0, cp, mult])
             else:
-                self.DIHEDRALS[type1, type2, type3, type4] = [[phi0, cp, mult]]
+                self.DIHEDRALS[i4] = [[phi0, cp, mult]]
+
+            #if i4 in self.DIHEDRALS:
+            #    for imult, dihedral in enumerate(self.DIHEDRALS[i4]):
+            #        if dihedral[2] == mult: del self.DIHEDRALS[i4][imult]
+            #    self.DIHEDRALS[i4].append([phi0, cp, mult])
+
+            #else:
+            #    self.DIHEDRALS[i4] = [[phi0, cp, mult]]
  
 
 

@@ -1,0 +1,45 @@
+# This file was created Sat Jul 10 23:38:09 2021
+# Created by:
+#                      :-) GROMACS - gmx energy, 2018.8 (-:
+# 
+# Executable:   /usr/local/gromacs/bin/gmx
+# Data prefix:  /usr/local/gromacs
+# Working dir:  /Users/siyoungkim/STR2GMX/examples/multicomponent/C36.charmm-gui.gromacs
+# Command line:
+#   gmx energy -f step7.edr -o energy/LJ14.xvg
+# gmx energy is part of G R O M A C S:
+#
+# Good ROcking Metal Altar for Chronical Sinners
+#
+@    title "GROMACS Energies"
+@    xaxis  label "Time (ps)"
+@    yaxis  label "(kJ/mol)"
+@TYPE xy
+@ view 0.15, 0.15, 0.75, 0.85
+@ legend on
+@ legend box on
+@ legend loctype view
+@ legend 0.78, 0.8
+@ legend length 2
+@ s0 legend "LJ-14"
+    0.000000  920.273682
+    0.200000  798.102051
+    0.400000  828.264404
+    0.600000  826.470032
+    0.800000  766.081787
+    1.000000  823.493225
+    1.200000  716.257935
+    1.400000  795.758545
+    1.600000  770.511841
+    1.800000  782.176086
+    2.000000  705.424255
+    2.200000  794.133240
+    2.400000  748.534973
+    2.600000  793.518311
+    2.800000  817.790161
+    3.000000  772.108765
+    3.200000  727.013672
+    3.400000  781.348999
+    3.600000  775.719666
+    3.800000  794.564575
+    4.000000  751.595825

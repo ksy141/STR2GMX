@@ -89,8 +89,11 @@ class Molecules:
             for i, j, k, l in mol.dsorted:
                 t1, t2, t3, t4 = ag[i].type, ag[j].type, ag[k].type, ag[l].type
                 
-                if t1 > t4:
-                    t1, t2, t3, t4 = t4, t3, t2, t1
+                #if t1 > t4:
+                #    t1, t2, t3, t4 = t4, t3, t2, t1
+
+                #if t1 == t4 and t2 > t3:
+                #    t2, t3 = t3, t2
                 
                 i4 = (t1, t2, t3, t4)
                 if i4 in self.toppar.DIHEDRALS:
@@ -98,17 +101,33 @@ class Molecules:
                         app = [*i4, *m]
                         if app not in self.dbdihedrals:
                             self.dbdihedrals.append([*i4, *m])
-                
+                            continue
 
-                if t2 > t3: t2, t3 = t3, t2
+                j4 = (t4, t3, t2, t1)
+                if j4 in self.toppar.DIHEDRALS:
+                    for m in self.toppar.DIHEDRALS[j4]:
+                        app = [*j4, *m]
+                        if app not in self.dbdihedrals:
+                            self.dbdihedrals.append([*j4, *m])
+                            continue
+
                 i4 = ('X', t2, t3, 'X')
                 if i4 in self.toppar.DIHEDRALS:
                     for m in self.toppar.DIHEDRALS[i4]:
                         app = [*i4, *m]
                         if app not in self.dbdihewilds:
                             self.dbdihewilds.append([*i4,*m])
+                            continue
 
-               
+                j4 = ('X', t3, t2, 'X')
+                if j4 in self.toppar.DIHEDRALS:
+                    for m in self.toppar.DIHEDRALS[j4]:
+                        app = [*j4, *m]
+                        if app not in self.dbdihewilds:
+                            self.dbdihewilds.append([*j4, *m])
+                            continue
+
+
             
             # IMPROPERS
             for i, j, k, l in mol.isorted:
@@ -130,12 +149,26 @@ class Molecules:
                     app = [*i4, q0, cq]
                     if app not in self.dbimprwilds:
                         self.dbimprwilds.append([*i4, q0, cq])
-            
 
+
+
+        ### ATOMTYPES W/O DUPLICATES
+        self.atomtypes = set(self.atomtypes)
+
+        #### DIHEDRALS
+        #for dihedral in self.toppar.DIHEDRALS:
+        #    type1, type2, type3, type4 = dihedral
+        #    if type1 == type4 == 'X' and all([attype in self.atomtypes for attype in [type2, type3]]):
+        #        for m in self.toppar.DIHEDRALS[type1, type2, type3, type4]:
+        #            phi, cp, mult = m
+        #            self.dbdihewilds.append([type1,type2,type3,type4,phi,cp,mult])
+        #    elif all([attype in self.atomtypes for attype in [type1, type2, type3, type4]]):
+        #        for m in self.toppar.DIHEDRALS[type1, type2, type3, type4]:
+        #            phi, cp, mult = m
+        #            self.dbdihedrals.append([type1,type2,type3,type4,phi,cp,mult])
 
 
         ### NONBONDED14 [pairtypes]
-        self.atomtypes = set(self.atomtypes)
         fix = []; unfix = [];
         
         for attype in self.atomtypes:

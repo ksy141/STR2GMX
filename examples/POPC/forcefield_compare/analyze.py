@@ -8,6 +8,7 @@ def ff2df(ff):
     pairtypes     = []
     angletypes    = []
     dihedraltypes = []
+    nonbonded     = []
 
     f = open(ff)
     for line in f:
@@ -16,6 +17,10 @@ def ff2df(ff):
         if not sl.rstrip(): continue
 
         ### WHAT TO READ
+        if sl.startswith('[ nonbond_params ]'):
+            readprm = 'nonbond'
+            continue
+
         if sl.startswith('[ bondtypes ]'):
             readprm = 'bond'
             continue
@@ -44,6 +49,11 @@ def ff2df(ff):
             if t1 > t2: t1, t2 = t2, t1
             pairtypes.append([t1, t2, *c])
 
+        if readprm == 'nonbond':
+            t1, t2, *c = sl.split()
+            if t1 > t2: t1, t2 = t2, t1
+            nonbonded.append([t1, t2, *c])
+
         if readprm == 'angle':
             t1, t2, t3, *c = sl.split()
             if t1 > t3: t1, t3 = t3, t1
@@ -57,7 +67,6 @@ def ff2df(ff):
             if t1 == t4 and t2 > t3:
                 t2, t3 = t3, t2
 
-
             dihedraltypes.append([t1, t2, t3, t4, *c])
 
 
@@ -65,12 +74,13 @@ def ff2df(ff):
     dfp = pd.DataFrame(pairtypes).sort_values(by=[0,1], ignore_index=True)
     dfa = pd.DataFrame(angletypes).sort_values(by=[0,1,2], ignore_index=True)
     dfd = pd.DataFrame(dihedraltypes).sort_values(by=[0,1,2,3], ignore_index=True)
+    dfn = pd.DataFrame(nonbonded).sort_values(by=[0,1], ignore_index=True)
 
-    return dfb, dfp, dfa, dfd
+    return dfb, dfp, dfa, dfd, dfn
 
 
-sb, sp, sa, sd = ff2df('../C36.str2gmx.gromacs/toppar/forcefield.itp')
-cb, cp, ca, cd = ff2df('../C36.charmm-gui.gromacs/toppar/forcefield.itp')
+sb, sp, sa, sd, sn = ff2df('../C36/toppar/forcefield.itp')
+cb, cp, ca, cd, cn = ff2df('../C36_LJPME/toppar/forcefield.itp')
 
 sb.to_csv('sbonds', '\t')
 cb.to_csv('cbonds', '\t')
@@ -83,4 +93,8 @@ cp.to_csv('cpairs', '\t')
 
 sd.to_csv('sdihedrals', '\t')
 cd.to_csv('cdihedrals', '\t')
+
+sn.to_csv('snonbond', '\t')
+cn.to_csv('cnonbond', '\t')
+
 

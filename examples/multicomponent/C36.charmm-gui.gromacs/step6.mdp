@@ -1,0 +1,16 @@
+integrator              = steep
+emtol                   = 1000.0
+nsteps                  = 5000
+nstlist                 = 10
+cutoff-scheme           = Verlet
+rlist                   = 1.0
+vdwtype                 = Cut-off
+vdw-modifier            = Force-switch
+rvdw_switch             = 0.8
+rvdw                    = 1.0
+coulombtype             = pme
+rcoulomb                = 1.0
+;
+constraints             = h-bonds
+constraint_algorithm    = LINCS
+

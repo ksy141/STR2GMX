@@ -1,0 +1,45 @@
+# This file was created Sat Jul 10 23:37:28 2021
+# Created by:
+#                      :-) GROMACS - gmx energy, 2018.8 (-:
+# 
+# Executable:   /usr/local/gromacs/bin/gmx
+# Data prefix:  /usr/local/gromacs
+# Working dir:  /Users/siyoungkim/STR2GMX/examples/multicomponent/C36.str2gmx.gromacs
+# Command line:
+#   gmx energy -f step7.edr -o energy/UB.xvg
+# gmx energy is part of G R O M A C S:
+#
+# Gallium Rubidium Oxygen Manganese Argon Carbon Silicon
+#
+@    title "GROMACS Energies"
+@    xaxis  label "Time (ps)"
+@    yaxis  label "(kJ/mol)"
+@TYPE xy
+@ view 0.15, 0.15, 0.75, 0.85
+@ legend on
+@ legend box on
+@ legend loctype view
+@ legend 0.78, 0.8
+@ legend length 2
+@ s0 legend "U-B"
+    0.000000  3030.797119
+    0.200000  4407.363281
+    0.400000  4747.567383
+    0.600000  4871.758789
+    0.800000  4771.356445
+    1.000000  4889.095703
+    1.200000  4877.327148
+    1.400000  5022.042969
+    1.600000  5078.654785
+    1.800000  4898.839355
+    2.000000  5004.480469
+    2.200000  5058.262207
+    2.400000  5085.361328
+    2.600000  4987.854492
+    2.800000  4921.594238
+    3.000000  5134.142090
+    3.200000  5125.398438
+    3.400000  4911.059082
+    3.600000  5124.981445
+    3.800000  5003.686035
+    4.000000  4994.083008

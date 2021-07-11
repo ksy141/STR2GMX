@@ -1,0 +1,45 @@
+integrator              = md
+dt                      = 0.002
+nsteps                  = 2000
+nstxout                 = 100
+nstvout                 = 0
+nstfout                 = 0
+nstxout-compressed      = 10
+nstcalcenergy           = 100
+nstenergy               = 100
+nstlog                  = 1000
+;
+cutoff-scheme           = Verlet
+nstlist                 = 20
+rlist                   = 1.0
+vdwtype                 = Cut-off
+vdw-modifier            = Force-switch
+rvdw_switch             = 0.8
+rvdw                    = 1.0
+coulombtype             = pme
+rcoulomb                = 1.0
+;
+tcoupl                  = berendsen
+tc_grps                 = SYSTEM
+tau_t                   = 1.0
+ref_t                   = 310
+;
+pcoupl                  = berendsen
+pcoupltype              = semiisotropic 
+tau_p                   = 5.0
+compressibility         = 4.5e-5  4.5e-5
+ref_p                   = 1.0     1.0
+;
+constraints             = h-bonds
+constraint_algorithm    = LINCS
+;
+nstcomm                 = 100
+comm_mode               = linear
+comm_grps               = SYSTEM
+;
+gen-vel                 = yes
+gen-temp                = 310
+gen-seed                = -1
+;
+refcoord_scaling        = com
+

@@ -1,0 +1,45 @@
+# This file was created Sat Jul 10 23:38:09 2021
+# Created by:
+#                      :-) GROMACS - gmx energy, 2018.8 (-:
+# 
+# Executable:   /usr/local/gromacs/bin/gmx
+# Data prefix:  /usr/local/gromacs
+# Working dir:  /Users/siyoungkim/STR2GMX/examples/multicomponent/C36.charmm-gui.gromacs
+# Command line:
+#   gmx energy -f step7.edr -o energy/LJ.xvg
+# gmx energy is part of G R O M A C S:
+#
+# GROtesk MACabre and Sinister
+#
+@    title "GROMACS Energies"
+@    xaxis  label "Time (ps)"
+@    yaxis  label "(kJ/mol)"
+@TYPE xy
+@ view 0.15, 0.15, 0.75, 0.85
+@ legend on
+@ legend box on
+@ legend loctype view
+@ legend 0.78, 0.8
+@ legend length 2
+@ s0 legend "LJ (SR)"
+    0.000000  2803.986816
+    0.200000  1215.518799
+    0.400000  1031.696777
+    0.600000  1061.420532
+    0.800000  1367.736816
+    1.000000  1063.189575
+    1.200000  874.614990
+    1.400000  874.641968
+    1.600000  851.049316
+    1.800000  927.503540
+    2.000000  793.889526
+    2.200000  896.013428
+    2.400000  865.660889
+    2.600000  631.766235
+    2.800000  1207.373169
+    3.000000  1117.412476
+    3.200000  965.723450
+    3.400000  954.643555
+    3.600000  779.319946
+    3.800000  821.964844
+    4.000000  810.155090

@@ -1,0 +1,45 @@
+# This file was created Sat Jul 10 23:38:09 2021
+# Created by:
+#                      :-) GROMACS - gmx energy, 2018.8 (-:
+# 
+# Executable:   /usr/local/gromacs/bin/gmx
+# Data prefix:  /usr/local/gromacs
+# Working dir:  /Users/siyoungkim/STR2GMX/examples/multicomponent/C36.charmm-gui.gromacs
+# Command line:
+#   gmx energy -f step7.edr -o energy/bond.xvg
+# gmx energy is part of G R O M A C S:
+#
+# Great Red Oystrich Makes All Chemists Sane
+#
+@    title "GROMACS Energies"
+@    xaxis  label "Time (ps)"
+@    yaxis  label "(kJ/mol)"
+@TYPE xy
+@ view 0.15, 0.15, 0.75, 0.85
+@ legend on
+@ legend box on
+@ legend loctype view
+@ legend 0.78, 0.8
+@ legend length 2
+@ s0 legend "Bond"
+    0.000000  257.379089
+    0.200000  790.212463
+    0.400000  833.637634
+    0.600000  866.490723
+    0.800000  946.753235
+    1.000000  919.099670
+    1.200000  937.442078
+    1.400000  931.217651
+    1.600000  951.684204
+    1.800000  899.092712
+    2.000000  993.201660
+    2.200000  941.661011
+    2.400000  930.719788
+    2.600000  899.576416
+    2.800000  903.833679
+    3.000000  923.082397
+    3.200000  998.373962
+    3.400000  1018.193359
+    3.600000  947.665771
+    3.800000  967.581726
+    4.000000  969.314209

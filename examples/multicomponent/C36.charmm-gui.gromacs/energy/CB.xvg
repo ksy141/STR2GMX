@@ -1,0 +1,45 @@
+# This file was created Sat Jul 10 23:38:09 2021
+# Created by:
+#                      :-) GROMACS - gmx energy, 2018.8 (-:
+# 
+# Executable:   /usr/local/gromacs/bin/gmx
+# Data prefix:  /usr/local/gromacs
+# Working dir:  /Users/siyoungkim/STR2GMX/examples/multicomponent/C36.charmm-gui.gromacs
+# Command line:
+#   gmx energy -f step7.edr -o energy/CB.xvg
+# gmx energy is part of G R O M A C S:
+#
+# GRoups of Organic Molecules in ACtion for Science
+#
+@    title "GROMACS Energies"
+@    xaxis  label "Time (ps)"
+@    yaxis  label "(kJ/mol)"
+@TYPE xy
+@ view 0.15, 0.15, 0.75, 0.85
+@ legend on
+@ legend box on
+@ legend loctype view
+@ legend 0.78, 0.8
+@ legend length 2
+@ s0 legend "Coulomb (SR)"
+    0.000000  -50155.054688
+    0.200000  -49410.648438
+    0.400000  -49776.335938
+    0.600000  -49514.257812
+    0.800000  -49916.730469
+    1.000000  -49731.531250
+    1.200000  -49918.890625
+    1.400000  -49570.011719
+    1.600000  -49709.871094
+    1.800000  -49638.343750
+    2.000000  -49730.242188
+    2.200000  -50067.542969
+    2.400000  -50111.175781
+    2.600000  -49780.582031
+    2.800000  -50772.660156
+    3.000000  -50452.105469
+    3.200000  -50320.812500
+    3.400000  -50287.382812
+    3.600000  -50241.796875
+    3.800000  -50378.984375
+    4.000000  -50313.578125

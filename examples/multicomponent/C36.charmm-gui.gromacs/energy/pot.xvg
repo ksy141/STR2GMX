@@ -1,0 +1,45 @@
+# This file was created Sat Jul 10 23:38:09 2021
+# Created by:
+#                      :-) GROMACS - gmx energy, 2018.8 (-:
+# 
+# Executable:   /usr/local/gromacs/bin/gmx
+# Data prefix:  /usr/local/gromacs
+# Working dir:  /Users/siyoungkim/STR2GMX/examples/multicomponent/C36.charmm-gui.gromacs
+# Command line:
+#   gmx energy -f step7.edr -o energy/pot.xvg
+# gmx energy is part of G R O M A C S:
+#
+# GROningen Mixture of Alchemy and Childrens' Stories
+#
+@    title "GROMACS Energies"
+@    xaxis  label "Time (ps)"
+@    yaxis  label "(kJ/mol)"
+@TYPE xy
+@ view 0.15, 0.15, 0.75, 0.85
+@ legend on
+@ legend box on
+@ legend loctype view
+@ legend 0.78, 0.8
+@ legend length 2
+@ s0 legend "Potential"
+    0.000000  -33545.875000
+    0.200000  -33843.824219
+    0.400000  -34288.277344
+    0.600000  -33983.816406
+    0.800000  -34217.679688
+    1.000000  -34374.523438
+    1.200000  -34789.019531
+    1.400000  -34619.445312
+    1.600000  -34421.523438
+    1.800000  -34686.246094
+    2.000000  -34807.472656
+    2.200000  -34835.242188
+    2.400000  -35049.691406
+    2.600000  -35047.460938
+    2.800000  -35335.242188
+    3.000000  -35138.402344
+    3.200000  -35149.000000
+    3.400000  -35449.042969
+    3.600000  -35166.261719
+    3.800000  -35348.753906
+    4.000000  -35359.226562
