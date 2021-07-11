@@ -29,14 +29,7 @@ class Solvate:
         self.pos = pos
 
 
-    def run(self, ag = None, z = None, point = None):
-        if point == None:
-            raise ValueError('define a point')
-
-        if ag == None and z == None:
-            raise ValueError('either define AtomGroup or z value')
-
-
+    def run(self, Zup = None, Zdw = None):
         Nx = int(self.pbc[0] / LL) + 1
         Ny = int(self.pbc[1] / LL) + 1
         Nz = int(self.pbc[2] / LL) + 1
@@ -55,9 +48,55 @@ class Solvate:
         water_pos = np.concatenate(water_pos, axis=0)
         bAx = water_pos[:,0][::3] > self.pbc[0]
         bAy = water_pos[:,1][::3] > self.pbc[1]
-        bAz = water_pos[:,2][::3] > self.pbc[2]
+        
+        wpz = water_pos[:,2][::3]
+        if Zup == None and Zdw == None:
+            bAz = wpz > self.pbc[2]
+        elif Zdw == None:
+            bAz = (wpz > self.pbc[2]) | (wpz < Zup)
+        elif Zup == None:
+            bAz = (wpz > self.pbc[2]) | (wpz > Zdw)
+        else:
+            bAz = (wpz > self.pbc[2]) | ((Zdw < wpz) & (wpz < Zup))
+
         bA  = bAx | bAy | bAz
         waterbox_pos = water_pos[np.repeat(~bA, 3)]
+
+        n_atoms = len(waterbox_pos)
+        n_res   = int(n_atoms / 3)
+
+        sol = mda.Universe.empty(n_atoms = n_atoms,
+                                 n_residues = n_res,
+                                 atom_resindex = np.repeat(np.arange(n_res), 3),
+                                 residue_segindex = [0] * n_res,
+                                 trajectory = True)
+
+        sol.add_TopologyAttr('resnames', ['TIP3'] * n_res)
+        sol.add_TopologyAttr('resids', np.arange(1, n_res + 1))
+        sol.add_TopologyAttr('names', ['OH2', 'H1', 'H2'] * n_res)
+        sol.atoms.positions = waterbox_pos
+
+        newu = mda.Merge(self.u.atoms, sol.atoms)
+        newu.dimensions = self.u.dimensions
+
+        newu.add_TopologyAttr('segids', ['ORI', 'NEW'])
+        sel = '(segid ORI) or (segid NEW and not byres (name OH2 and around 4 (segid ORI)))'
+        ag = newu.select_atoms(sel)
+        
+        newu2 = mda.Merge(ag)
+        newu2.dimensions = self.u.dimensions
+        ag = newu2.select_atoms('resname TIP3')
+        assert ag.n_atoms == ag.n_residues * 3, 'atoms missing?'
+        ag.residues.resids = np.arange(1, ag.n_residues + 1)
+        return newu2
+
+
+        
+
+
+
+        
+
 
 
 
