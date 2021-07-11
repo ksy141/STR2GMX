@@ -1,5 +1,6 @@
 import MDAnalysis as mda
 import numpy as np
+import os
 
 LL = 18.856
 NN = 216
@@ -15,7 +16,8 @@ class Solvate:
 
         # Read tip216.crd coordinates
         pos = []
-        with open('FF/C36/toppar/tip216.crd') as f:
+        path = os.path.dirname(os.path.realpath(__file__))
+        with open(path + '/FF/C36/toppar/tip216.crd') as f:
             for line in f.readlines():
                 if line.startswith('*'): continue
                 sl = line.split()
@@ -29,7 +31,15 @@ class Solvate:
         self.pos = pos
 
 
-    def run(self, Zup = None, Zdw = None):
+    def run(self, zUP = None, zDW = None):
+        
+        # Existing water
+        ew = self.u.select_atoms('resname TIP3')
+        if ew.n_atoms == 0:
+            maxresid = 0
+        else:
+            maxresid = max(ew.resids)
+
         Nx = int(self.pbc[0] / LL) + 1
         Ny = int(self.pbc[1] / LL) + 1
         Nz = int(self.pbc[2] / LL) + 1
@@ -50,14 +60,14 @@ class Solvate:
         bAy = water_pos[:,1][::3] > self.pbc[1]
         
         wpz = water_pos[:,2][::3]
-        if Zup == None and Zdw == None:
+        if zUP == None and zDW == None:
             bAz = wpz > self.pbc[2]
-        elif Zdw == None:
-            bAz = (wpz > self.pbc[2]) | (wpz < Zup)
-        elif Zup == None:
-            bAz = (wpz > self.pbc[2]) | (wpz > Zdw)
+        elif zDW == None:
+            bAz = (wpz > self.pbc[2]) | (wpz < zUP)
+        elif zUP == None:
+            bAz = (wpz > self.pbc[2]) | (wpz > zDW)
         else:
-            bAz = (wpz > self.pbc[2]) | ((Zdw < wpz) & (wpz < Zup))
+            bAz = (wpz > self.pbc[2]) | ((zDW < wpz) & (wpz < zUP))
 
         bA  = bAx | bAy | bAz
         waterbox_pos = water_pos[np.repeat(~bA, 3)]
@@ -80,28 +90,19 @@ class Solvate:
         newu.dimensions = self.u.dimensions
 
         newu.add_TopologyAttr('segids', ['ORI', 'NEW'])
-        sel = '(segid ORI) or (segid NEW and not byres (name OH2 and around 4 (segid ORI)))'
+        sel = '(segid ORI) or (segid NEW and not byres (name OH2 and around 5 (segid ORI)))'
         ag = newu.select_atoms(sel)
         
         newu2 = mda.Merge(ag)
         newu2.dimensions = self.u.dimensions
-        ag = newu2.select_atoms('resname TIP3')
-        assert ag.n_atoms == ag.n_residues * 3, 'atoms missing?'
-        ag.residues.resids = np.arange(1, ag.n_residues + 1)
+
+        newWater = newu2.select_atoms('segid NEW and resname TIP3')
+        newWater.residues.resids = np.arange(maxresid + 1, maxresid + newWater.n_residues + 1)
+        assert newWater.n_atoms == newWater.n_residues * 3, 'atoms missing?'
+        
+        allWater = newu2.select_atoms('resname TIP3')
+        assert allWater.n_atoms == allWater.n_residues * 3, 'atoms missing?'
+
         return newu2
-
-
-        
-
-
-
-        
-
-
-
-
-
-
-
 
 
