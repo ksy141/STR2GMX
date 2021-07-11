@@ -38,8 +38,10 @@ class Molecules:
         self.mols   = mols
         self.toppar = toppar
         self.prefix = prefix
+        self.qtot   = 0
 
         self.collect_used()
+        self.cal_qtot()
 
 
     def write(self):
@@ -482,4 +484,16 @@ class Molecules:
             topFile.write('%-6s\t%12d\n' % (mol.resname, n_res))
     
         topFile.close()
+
+
+    def cal_qtot(self):
+        self.qtot = 0
+        system = self.mols[0].system
+        for mol in self.mols:
+            res_n = system.select_atoms('resname ' + mol.resname).n_residues
+            res_q = np.sum(self.toppar.RESI[mol.resname]['charges'])
+            self.qtot += res_q * res_q
+        
+        self.qtot = int(self.qtot)
+
 
