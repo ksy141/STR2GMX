@@ -31,7 +31,7 @@ class Solvate:
         self.pos = pos
 
 
-    def run(self, zUP = None, zDW = None):
+    def run(self, zUP = None, zDW = None, cutoff=5):
         
         # Existing water
         ew = self.u.select_atoms('resname TIP3')
@@ -90,7 +90,7 @@ class Solvate:
         newu.dimensions = self.u.dimensions
 
         newu.add_TopologyAttr('segids', ['ORI', 'NEW'])
-        sel = '(segid ORI) or (segid NEW and not byres (name OH2 and around 5 (segid ORI)))'
+        sel = '(segid ORI) or (segid NEW and not byres (name OH2 and around %d (segid ORI)))' %cutoff
         ag = newu.select_atoms(sel)
         
         newu2 = mda.Merge(ag)
