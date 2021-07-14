@@ -1,4 +1,4 @@
-Build CHARMM-GUI-style topology files to run GROMACS simulations
+Build CHARMM-GUI-style topology files to run GROMACS simulations.
 STR2GMX uses a whole structure to build topology files. 
 There should be no missing atoms.
 Systems containing protieins are not currently supported.
