@@ -28,6 +28,7 @@ class ReadToppars:
 
         elif os.path.isfile(toppars):
             p = os.path.dirname(toppars)
+            if p == '': p = '.'
 
             with open(toppars) as f:
                 tops = []
