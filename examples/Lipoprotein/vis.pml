@@ -16,7 +16,7 @@ set_color cTGtail, [1.000, 1.000, 0.000]
 run ../vis_sel.py
 
 
-load vis_step5.gro
+#load vis_step5.gro
 hide
 
 cmd.select('PLhead', PLhead)

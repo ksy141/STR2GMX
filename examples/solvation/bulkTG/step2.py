@@ -13,6 +13,7 @@ s = str2gmx.Solvate(u)
 newu = s.run(cutoff=5.0)
 newu.atoms.write('step2.gro')
 
-ag = newu.select_atoms('prop x > %f' %(pbc[0]/2))
-ag.write('vis.gro')
+ag1 = newu.select_atoms('byres (resname TRIO and prop x > %f)' %(pbc[0]/2))
+ag2 = newu.select_atoms('resname TIP3 and prop x > %f' %(pbc[0]/2 + 15))
+mda.Merge(ag1, ag2).atoms.write('vis.gro')
 

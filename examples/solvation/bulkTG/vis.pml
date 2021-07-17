@@ -13,7 +13,7 @@ set_color cTGhead, [0.140, 1.000, 0.140]
 # 255, 255, 0
 set_color cTGtail, [1.000, 1.000, 0.000]
 
-run vis_sel.py
+run ../../vis_sel.py
 
 
 load vis.gro
