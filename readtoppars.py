@@ -8,7 +8,7 @@ from   .atomdata import elements, masses
 
 comment = '!'
 kcal2kJ = 4.184
-items   = ('RESI', 'ATOMS', 'BONDS', 'ANGLES', 'DIHEDRALS', 'IMPROPER', 'NONBONDED', 'NBFIX', 'CMAP') 
+items   = ('RESI', 'ATOMS', 'BONDS', 'ANGLES', 'DIHEDRALS', 'IMPROPER', 'NONBONDED', 'NBFIX', 'CMAP', 'PRES') 
 #items   = ('RESI', 'BONDS', 'ANGLES', 'DIHEDRALS', 'IMPROPER', 'NONBONDED', 'NBFIX', 'CMAP', 'PRES') 
 
 
