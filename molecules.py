@@ -3,6 +3,7 @@ import numpy      as np
 import pandas     as pd
 import os
 from   .molecule  import Molecule
+from   .chain     import Chain
 
 funcForBonds     = 1
 funcForAngles    = 5    # Urey-Bradley angle type
@@ -33,7 +34,7 @@ class Molecules:
             os.makedirs(prefix)
 
         for mol in mols:
-            assert isinstance(mol, Molecule), 'Molecule instance?'
+            assert isinstance(mol, Molecule) or isinstance(mol, Chain), 'Molecule or Chain instance?'
 
         self.mols   = mols
         self.toppar = toppar
@@ -478,9 +479,14 @@ class Molecules:
 
         for mol in self.mols:
             n_atom = len(self.toppar.RESI[mol.resname]['names'])
-            ag     = u.select_atoms('resname %s' %mol.resname.upper())
-            n_res  = ag.n_residues
-            assert ag.n_atoms == n_atom * n_res, 'atoms missing?'
+
+            if isinstance(mol, Molecule):
+                ag     = u.select_atoms('resname %s' %mol.resname.upper())
+                n_res  = ag.n_residues
+                assert ag.n_atoms == n_atom * n_res, 'atoms missing?'
+            else:
+                n_res  = 1
+            
             topFile.write('%-6s\t%12d\n' % (mol.resname, n_res))
     
         topFile.close()

@@ -119,6 +119,7 @@ class ReadToppars:
         self.NONBONDED = {}
         self.NB14      = {}
         self.NBFIX     = {}
+        self.CMAP      = []
 
         for atom in self.atoms:
             #if len(atom) == 5: continue # don't read an atom line with element
@@ -166,6 +167,9 @@ class ReadToppars:
             elif save.startswith('NBFIX'):
                 self._read_NBFIX(ssave)
 
+            elif save.startswith('CMAP'):
+                self._read_CMAP(save)
+
 
 
     def _read_RESI(self, ssave):
@@ -174,6 +178,7 @@ class ReadToppars:
         names     = []
         types     = []
         charges   = []
+        masses    = []
         bonds     = []
         imprs     = []
         angles    = []
@@ -183,9 +188,15 @@ class ReadToppars:
             segments = line.split()
 
             if line.startswith('ATOM'):
+                type = segments[2]
                 names.append(segments[1])
-                types.append(segments[2])
+                types.append(type)
                 charges.append(float(segments[3]))
+                
+                if type not in self.ATOMS.keys():
+                    masses.append(0)
+                else:
+                    masses.append(self.ATOMS[type]['mass'])
 
             elif line.startswith(('BOND', 'DOUB')):
                 for i in range(0, len(segments[1:]), 2):
@@ -212,7 +223,8 @@ class ReadToppars:
             print(out + '\n')
 
         self.RESI[resname] = {'names':     np.array(names), 
-                              'types':     np.array(types), 
+                              'types':     np.array(types),
+                              'masses':    np.array(masses),
                               'bonds':     np.array(bonds),
                               'imprs':     np.array(imprs),
                               'charges':   np.array(charges),
@@ -389,5 +401,23 @@ class ReadToppars:
             self.NBFIX[(type1, type2)] = [sigma, eps]
 
 
+    def _read_CMAP(self, ssave):
+        for line in ssave[1:]:
+            if not line: continue
+            
+            segments = line.split()
+            try:
+                segments[0] = float(segments[0])
+                for icmap in segments:
+                    icmap = float(icmap)*kcal2kJ
+                    self.CMAP[-1]['data'].append(icmap)
 
+            except:
+                type1 = segments[0]
+                type2 = segments[1]
+                type3 = segments[2]
+                type4 = segments[3]
+                type5 = segments[7]
+                ncmap = int(segments[8])
+                self.CMAP.append(dict(atoms=[type1, type2, type3, type4, type5], ncmap=ncmap, data=[]))
 
