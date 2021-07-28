@@ -41,10 +41,10 @@ class Molecules:
         self.mols   = mols
         self.toppar = toppar
         self.prefix = prefix
-        self.qtot   = 0
+        self.qtot   = int(np.sum([mol.qtot for mol in mols]))
+        print('\nNET CHARGE OF A SYSTEM: %d\n' %self.qtot)
 
         self.collect_used()
-        self.cal_qtot()
 
 
     def write(self):
@@ -76,7 +76,7 @@ class Molecules:
         for mol in self.mols:
             ag = mol.ag
             self.atomtypes.extend(ag.types)
-            
+
             # BONDS
             for i, j in mol.bsorted:
                 t1, t2 = ag[i].type, ag[j].type
@@ -396,15 +396,15 @@ class Molecules:
             if len(mol.dsorted) > 0:
                 nrexcl = 3
             
-            itpFile = open(self.prefix + mol.resname.upper() + '.itp', 'w')
+            itpFile = open(self.prefix + mol.SegName.upper() + '.itp', 'w')
             itpFile.write(header)
             itpFile.write(';;\n')
-            itpFile.write(';; GROMACS topology file for %s\n' % mol.resname.upper())
+            itpFile.write(';; GROMACS topology file for %s\n' % mol.SegName.upper())
             itpFile.write(';;\n\n')
             
             itpFile.write('\n[ moleculetype ]\n')
             itpFile.write('; name\tnrexcl\n')
-            itpFile.write('%s\t %5d\n' % (mol.resname.upper(), nrexcl))
+            itpFile.write('%s\t %5d\n' % (mol.SegName.upper(), nrexcl))
             
     
             # ATOMS
@@ -419,7 +419,7 @@ class Molecules:
                 itpFile.write(fmt %(i+1, atom.type, atom.resid, atom.resname, atom.name, i+1, atom.charge, atom.mass, qtot))
 
 
-            if mol.resname.upper() == 'TIP3':
+            if mol.SegName.upper() == 'TIP3':
                 itpFile.close()
                 write_TIP3 = True
                 continue
@@ -496,8 +496,6 @@ class Molecules:
 
 
     def write_top(self):
-        u = self.mols[0].system
-
         topFile = open(self.prefix + '../topol.top', 'w')
         topFile.write(header)
         topFile.write(';; The main GROMACS topology file\n')
@@ -506,7 +504,7 @@ class Molecules:
         topFile.write('#include "toppar/forcefield.itp"\n')
 
         for mol in self.mols:
-            topFile.write('#include "toppar/%s.itp"\n' % mol.resname.upper())
+            topFile.write('#include "toppar/%s.itp"\n' % mol.SegName.upper())
     
         topFile.write('\n[ system ]\n')
         topFile.write('; Name\n')
@@ -516,28 +514,7 @@ class Molecules:
         topFile.write('; Compound\t#mols\n')
 
         for mol in self.mols:
-            n_atom = len(self.toppar.RESI[mol.resname]['names'])
-
-            if isinstance(mol, Molecule):
-                ag     = u.select_atoms('resname %s' %mol.resname.upper())
-                n_res  = ag.n_residues
-                assert ag.n_atoms == n_atom * n_res, 'atoms missing?'
-            else:
-                n_res  = 1
-            
-            topFile.write('%-6s\t%12d\n' % (mol.resname, n_res))
-    
+            topFile.write('%-6s\t%12d\n' % (mol.SegName, mol.SegNum))
         topFile.close()
-
-
-    def cal_qtot(self):
-        self.qtot = 0
-        system = self.mols[0].system
-        for mol in self.mols:
-            res_n = system.select_atoms('resname ' + mol.resname).n_residues
-            res_q = np.sum(self.toppar.RESI[mol.resname]['charges'])
-            self.qtot += res_q * res_q
-        
-        self.qtot = int(self.qtot)
 
 

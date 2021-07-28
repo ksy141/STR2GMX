@@ -44,6 +44,7 @@ class ReadToppars:
         
         self.verbose = verbose
         print(pd.DataFrame([toppar.split('/')[-1] for toppar in toppars]))
+        print('\n\n')
 
 
         self.toppars = toppars
@@ -180,7 +181,7 @@ class ReadToppars:
 
 
     def _read_RESI(self, ssave):
-        resname = ssave[0].split()[1]
+        resname = ssave[0].split()[1].upper()
         
         names     = []
         types     = []

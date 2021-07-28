@@ -1,28 +1,52 @@
 import MDAnalysis as mda
 import numpy as np
 import pandas as pd
+from  .guess import _guess_pairs14
 
 class Chain:
 
     def __init__(self, ag, toppar, segname = 'PROA', add_bonds = []):
 
         assert ag.select_atoms('protein').n_atoms == ag.n_atoms, 'no protein atoms?'
-        oneletterseq = ag.residues.sequence().seq
         
-        self.resname = segname
-        self.toppar = toppar
-        self.system = ag.universe
-        self.ag     = ag
-        self.u      = mda.Merge(ag)
-        self.ag     = self.u.atoms
+        self.SegNum  = 1
+        self.ResNum  = ag.residues.n_residues
+        self.ResSeq  = ag.residues.sequence().seq
+        self.SegName = segname
+
+        self.toppar  = toppar
         self.add_bonds = add_bonds
+
+        ### self.ag and self.u contain only one chain
+        ### in a protein case, basically, the whole ag
+        ### still, in order to start the index from 0,
+        ### you have to create a new universe.
+
+        self.u       = mda.Merge(ag)
+        self.ag      = self.u.atoms
         self.u.add_TopologyAttr('charges', [0] * self.u.atoms.n_atoms)
+
+        ### connectivity with indices
+        ### ctypes with types so that they can be used later 
+        ### when writting forcefield.itp
+        self.bsorted = []
+        self.asorted = []
+        self.dsorted = []
+        self.isorted = []
+        self.psorted = []
+        self.csorted = []
+        self.ctypes  = []
+
         self.generate()
+        self.q    = np.sum(self.u.atoms.charges)
+        self.qtot = self.q
+        print('\n\n')
+
 
     def generate(self):
-        ### CURRENTLY SUPPORT
-        ### NTER/GLYP, ACP/ACE
-        ### CTER, CNEU, CT1, CT2, CT3
+        ### CURRENTLY SUPPORT FOLLOWING PATCHES
+        ### NTER/GLYP/PROP, NNEU/NGNE, ACP/ACE
+        ### CTER, CNEU, CT1/2/3
 
         atnames  = self.u.atoms.names
         residues = self.u.residues
@@ -62,9 +86,10 @@ class Chain:
 
         if np.all(np.isin(['CAT', 'HT1', 'HT2', 'HT3', 'HNT'], atnames)):
             CPATCH = 'CT3'
-
+        
+        print('[ %s ]' %self.SegName)
         print('NPATCH: ', NPATCH)
-        print('CPATCH: ', CPATCH, '\n')
+        print('CPATCH: ', CPATCH)
         
 
         ### BOND / ANGLES / IMPRS
@@ -164,7 +189,7 @@ class Chain:
                 self.dsorted = df.sort_values(by=[1,2,0,3]).to_numpy()
                 self.u.add_TopologyAttr('dihedrals', self.dsorted)
 
-                self.psorted = self._guess_pairs14(self.bsorted)
+                self.psorted = _guess_pairs14(self.bsorted)
                 
                 self.csorted = cc
                 self.ctypes  = ctypes
@@ -227,16 +252,9 @@ class Chain:
                                         [nextN.index], \
                                         atoms.select_atoms('name O').indices])
 
-                #impr2 = np.concatenate([atoms.select_atoms('name N').indices, \
-                #                        atoms.select_atoms('name CAY').indices, \
-                #                        atoms.select_atoms('name CA').indices, \
-                #                        atoms.select_atoms('name HN CD').indices])
-
                 assert len(impr1) == 4, 'check impr1'
                 self.isorted.append(impr1)
-                #if len(impr2) == 4: self.isorted.append(impr2)
 
-            
 
                 for ai, aj, ak, al in top_resi['imprs']:
                     atomi = atoms[ai == names]
@@ -298,14 +316,8 @@ class Chain:
                                         atoms.select_atoms('name CA').indices, \
                                         atoms.select_atoms('name HN CD').indices])
 
-                #impr2 = np.concatenate([atoms.select_atoms('name C').indices, \
-                #                        atoms.select_atoms('name CA').indices, \
-                #                        atoms.select_atoms('name NT').indices, \
-                #                        atoms.select_atoms('name O').indices])
-
                 assert len(impr1) == 4, 'check impr1'
                 self.isorted.append(impr1)
-                #if len(impr2) == 4: self.isorted.append(impr2)
 
                 for ai, aj, ak, al in top_resi['imprs']:
                     atomi = atoms[ai == names]
@@ -367,7 +379,7 @@ class Chain:
 
         elif residues.n_residues == 2:
             cm = ['CY', 'N', 'CA', 'C', '+N']
-            tt, nn, ii = self.name2atom(cm, [residues[0], residues[0], residues[1]])
+            tt, ii = self.name2atom(cm, [residues[0], residues[0], residues[1]])
             if len(tt) > 0:
                 cc.append(ii)
                 ctypes.append(tt)
@@ -375,7 +387,7 @@ class Chain:
             if CPATCH != 'CT2':
                 # CT2 has NT but CT2 doesn't have CMAP
                 cm = ['-C', 'N', 'CA', 'C', 'NT']
-                tt, nn, ii = self.name2atom(cm, [residues[0], residues[1], residues[1]])
+                tt, ii = self.name2atom(cm, [residues[0], residues[1], residues[1]])
                 if len(tt) > 0:
                     cc.append(ii)
                     ctypes.append(tt)
@@ -383,7 +395,7 @@ class Chain:
 
         else:
             cm = ['CY', 'N', 'CA', 'C', '+N']
-            tt, nn, ii = self.name2atom(cm, [residues[0], residues[0], residues[1]])
+            tt, ii = self.name2atom(cm, [residues[0], residues[0], residues[1]])
             if len(tt) > 0:
                 cc.append(ii)
                 ctypes.append(tt)
@@ -391,7 +403,7 @@ class Chain:
             if CPATCH != 'CT2':
                 # CT2 has NT but CT2 doesn't have CMAP
                 cm = ['-C', 'N', 'CA', 'C', 'NT']
-                tt, nn, ii = self.name2atom(cm, [residues[-2], residues[-1], residues[-1]])
+                tt, ii = self.name2atom(cm, [residues[-2], residues[-1], residues[-1]])
                 if len(tt) > 0:
                     cc.append(ii)
                     ctypes.append(tt)
@@ -399,7 +411,7 @@ class Chain:
             for i in range(residues.n_residues):
                 if (0 <= i - 1) and (i + 1 < residues.n_residues):
                     for cm in top_resi['cmaps']:
-                        tt, nn, ii = self.name2atom(cm, [residues[i-1], residues[i], residues[i+1]])
+                        tt, ii = self.name2atom(cm, [residues[i-1], residues[i], residues[i+1]])
                         if len(tt) > 0:
                             cc.append(ii)
                             ctypes.append(tt)
@@ -416,27 +428,66 @@ class Chain:
                 for atomi, atomj in self.add_bonds:
                     try:
                         assert atomi.n_atoms * atomj.n_atoms == 1, 'more than two atoms?'
-                        bb.append([atomi.indices[0], atomj.indices[0]])
-                        self.bnames.append([atomi.names[0], atomj.names[0]])
-                        self.btypes.append([atomi.types[0], atomj.types[0]])
+                        si = 'resnmae %s and resid %d and name %s' \
+                                %(atomi.resnames[0], atomi.resids[0], atomi.names[0])
+                        ni = self.ag.select_atoms(si)
+
+                        sj = 'resname %s and resid %d and name %s' \
+                                %(atomj.resnames[0], atomj.resids[0], atomj.names[0])
+                        nj = self.ag.select_atoms(sj)
+
                     except:
-                        bb.append([atomi.index, atomj.index])
-                        self.bnames.append([atomi.name, atomj.name])
-                        self.btypes.append([atomi.type, atomj.type])
+                        si = 'resname %s and resid %d and name %s' \
+                                %(atomi.resname, atomi.resid, atomi.name)
+                        ni = self.ag.select_atoms(si)
+
+                        sj = 'resname %s and resid %d and name %s' \
+                                %(atomj.resname, atomj.resid, atomj.name)
+                        nj = self.ag.select_atoms(sj)
+                    
+                    assert ni.n_atoms * nj.n_atoms == 1, 'check new group?'
+                    print(si, ' - ', sj)
+                    nati = ni[0]
+                    natj = nj[0]
+
+                    bb.append([nati.index, natj.index])
+                    self.bnames.append([nati.name, natj.name])
+                    self.btypes.append([nati.type, natj.type])
  
+
             except:
                 ### [ag1, ag2] or [atom1, atom2]
                 atomi, atomj = self.add_bonds
                 try:
                     assert atomi.n_atoms * atomj.n_atoms == 1, 'more than two atoms?'
-                    bb.append([atomi.indices[0], atomj.indices[0]])
-                    self.bnames.append([atomi.names[0], atomj.names[0]])
-                    self.btypes.append([atomi.types[0], atomj.types[0]])
+                    si = 'resname %s and resid %d and name %s' \
+                            %(atomi.resnames[0], atomi.resids[0], atomi.names[0])
+                    ni = self.ag.select_atoms(si)
+
+                    sj = 'resname %s and resid %d and name %s' \
+                            %(atomj.resnames[0], atomj.resids[0], atomj.names[0])
+                    nj = self.ag.select_atoms(sj)
+
                 except:
-                    bb.append([atomi.index, atomj.index])
-                    self.bnames.append([atomi.name, atomj.name])
-                    self.btypes.append([atomi.type, atomj.type])
+                    si = 'resname %s and resid %d and name %s' \
+                            %(atomi.resname, atomi.resid, atomi.name)
+                    ni = self.ag.select_atoms(si)
+                    
+                    sj = 'resname %s and resid %d and name %s' \
+                            %(atomj.resname, atomj.resid, atomj.name)
+
+                    nj = self.ag.select_atoms(sj)
+                    
+                assert ni.n_atoms * nj.n_atoms == 1, 'check new group?'
+                print(si, ' - ', sj)
+                nati = ni[0]
+                natj = nj[0]
+
+                bb.append([nati.index, natj.index])
+                self.bnames.append([nati.name, natj.name])
+                self.btypes.append([nati.type, natj.type])
  
+
         df = pd.DataFrame(np.unique(bb, axis=0))
         self.bsorted = df.sort_values(by=[0,1]).to_numpy()
         self.u.add_TopologyAttr('bonds', self.bsorted)
@@ -451,7 +502,7 @@ class Chain:
         self.dsorted = df.sort_values(by=[1,2,0,3]).to_numpy()
         self.u.add_TopologyAttr('dihedrals', self.dsorted)
 
-        self.psorted = self._guess_pairs14(self.bsorted)
+        self.psorted = _guess_pairs14(self.bsorted)
         
         self.csorted = cc
         self.ctypes  = ctypes
@@ -485,7 +536,7 @@ class Chain:
                 atom = ag1.select_atoms('name %s' %name)
             
             if atom.n_atoms == 0:
-                return types, [], indes
+                return types, indes
             
             atoms += [atom[0]]
 
@@ -494,51 +545,6 @@ class Chain:
             types.append(atom.type)
             indes.append(atom.index)
 
-        return types, [], indes
+        return types, indes
             
 
-
-    def _guess_pairs14(self, bonds):
-        # build 1-4 pairs
-        pairs14 = []
-        if len(self.dsorted) == 0:
-            return pairs14
-
-        for b in bonds:
-            for i in [0, 1]:
-                idx1 = b[i]
-                bA1l = bonds[:,0] == idx1
-                bA1r = bonds[:,1] == idx1
-
-                ids2 = np.concatenate([bonds[:,1][bA1l], bonds[:,0][bA1r]])
-                if len(ids2) == 0: continue
-
-                bA2l = np.isin(bonds[:,0], ids2)
-                bA2r = np.isin(bonds[:,1], ids2)
-
-                ids3 = np.concatenate([bonds[:,1][bA2l], bonds[:,0][bA2r]])
-                ids3 = np.delete(ids3, np.isin(ids3, idx1))
-                if len(ids3) == 0: continue
-
-                bA3l = np.isin(bonds[:,0], ids3)
-                bA3r = np.isin(bonds[:,1], ids3)
-
-                ids4 = np.concatenate([bonds[:,1][bA3l], bonds[:,0][bA3r]])
-                ids4 = np.delete(ids4, np.isin(ids4, ids2))
-                ids4 = np.delete(ids4, np.isin(ids4, ids3)) #cholesterol pentagon
-                if len(ids4) == 0: continue
-
-                for idx4 in ids4:
-                    if idx1 > idx4:
-                        result = [idx4, idx1]
-
-                    else:
-                        result = [idx1, idx4]
-
-                    if result not in pairs14:
-                        pairs14.append(result)
-
-        df = pd.DataFrame(pairs14)
-        return df.sort_values(by=[0,1]).to_numpy()
-
-    

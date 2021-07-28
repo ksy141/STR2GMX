@@ -2,18 +2,28 @@ import numpy  as np
 import pandas as pd
 import MDAnalysis as mda
 import os
+from   .guess import _guess_pairs14
 
 class Molecule:
 
     def __init__(self, ag, toppar, generate_angles = True, generate_dihedrals = True):
         assert ag.n_atoms != 0, 'AtomGroup contains no atoms.'
         
-        self.system = ag.universe
-        newag = ag.residues[0].atoms
-        self.resname = newag.resnames[0]
-        self.u = mda.Merge(newag)
-        self.RESIDUE = toppar.RESI[self.resname]
+        self.ResName  = ag.residues.resnames[0] 
+        self.SegName  = self.ResName
+        self.SegNum   = ag.residues.n_residues
+        self.ResNum   = ag.residues.n_residues
+        
+        self.RESIDUE = toppar.RESI[self.ResName]
         self.ATOMS   = toppar.ATOMS
+
+        ### self.ag and self.u contain only 1 residue 
+        singleag  = ag.residues[0].atoms
+        self.u    = mda.Merge(singleag)
+        self.ag   = self.u.atoms
+        self.q    = np.sum(self.RESIDUE['charges'])
+        self.qtot = self.q * self.SegNum
+        self.u.add_TopologyAttr('charges', self.RESIDUE['charges'])
 
         name2index = {}
         index2name = {}
@@ -25,28 +35,29 @@ class Molecule:
         self.index2name = index2name
         self.generate_angles = generate_angles
         self.generate_dihedrals = generate_dihedrals
-
-        self.generate()
-
-    def generate(self):
-        self.ag = self.u.atoms
-        resname = self.resname
-
-        assert np.all(self.ag.names == np.array(self.RESIDUE['names'])), 'are atoms missing in ' + resname + '?'
-
-        self.ag.types = self.RESIDUE['types']
-        self.u.add_TopologyAttr('charges', self.RESIDUE['charges'])
         
-        for atom in self.ag:
-            atom.mass = self.ATOMS[atom.type]['mass']
-        
+        ### connectivity with indices
         self.bsorted = []
         self.asorted = []
         self.dsorted = []
         self.isorted = []
+        self.psorted = []
         self.csorted = []
         self.ctypes  = []
         
+        self.generate()
+
+    def generate(self):
+        resname = self.ResName
+
+        assert np.all(self.ag.names == np.array(self.RESIDUE['names'])), 'are atoms missing in ' + resname + '?'
+
+        self.ag.types = self.RESIDUE['types']
+        
+        for atom in self.ag:
+            atom.mass = self.ATOMS[atom.type]['mass']
+        
+       
         ### BONDS
         if len(self.RESIDUE['bonds']) > 0:
             bonds_str = np.array(self.RESIDUE['bonds']).reshape(-1)
@@ -118,50 +129,6 @@ class Molecule:
         ### PAIRS1-4
         ### should be followed by obtaining self.dsorted
         ### because if len(self.dsorted) == 0, then it will return []
-        self.psorted = self._guess_pairs14(self.bsorted)
-
-
-    def _guess_pairs14(self, bonds):
-        
-        # build 1-4 pairs
-        pairs14 = []
-        if len(self.dsorted) == 0:
-            return pairs14
-
-        for b in bonds:
-            for i in [0, 1]:
-                idx1 = b[i]
-                bA1l = bonds[:,0] == idx1
-                bA1r = bonds[:,1] == idx1
-
-                ids2 = np.concatenate([bonds[:,1][bA1l], bonds[:,0][bA1r]])
-                if len(ids2) == 0: continue
-                
-                bA2l = np.isin(bonds[:,0], ids2)
-                bA2r = np.isin(bonds[:,1], ids2)
-
-                ids3 = np.concatenate([bonds[:,1][bA2l], bonds[:,0][bA2r]])
-                ids3 = np.delete(ids3, np.isin(ids3, idx1))
-                if len(ids3) == 0: continue
-                
-                bA3l = np.isin(bonds[:,0], ids3)
-                bA3r = np.isin(bonds[:,1], ids3)
-
-                ids4 = np.concatenate([bonds[:,1][bA3l], bonds[:,0][bA3r]])
-                ids4 = np.delete(ids4, np.isin(ids4, ids2))
-                ids4 = np.delete(ids4, np.isin(ids4, ids3)) #cholesterol pentagon
-                if len(ids4) == 0: continue
-
-                for idx4 in ids4:
-                    if idx1 > idx4:
-                        result = [idx4, idx1]
-
-                    else:
-                        result = [idx1, idx4]
-
-                    if result not in pairs14:
-                        pairs14.append(result)
- 
-        df = pd.DataFrame(pairs14)
-        return df.sort_values(by=[0,1]).to_numpy()
+        if len(self.dsorted) != 0:
+            self.psorted = _guess_pairs14(self.bsorted)
 

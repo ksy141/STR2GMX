@@ -1,8 +1,6 @@
 Build CHARMM-GUI-style topology files to run GROMACS simulations.
-STR2GMX uses a whole structure to build topology files. 
-There should be no missing atoms.
-Systems containing protieins are not currently supported.
-[Will be updated in a near future.]
+STR2GMX reads a COMPLETE structure to build GROMACS-compatible topology files. 
+By COMPLETE, I mean there should be no missing atoms.
 
 STR2GMX was written based on psf2itp.py, which was written by
 Jumin Lee [jul316@lehigh.edu] and Wonpil Im [wonpil@lehigh.edu].
@@ -12,7 +10,7 @@ to build GROMACS topology files,
 STR2GMX reads a whole structure and both CHARMM parameter and topology files.
 
 You can also easily solvate systems with Solvate class.
-Addition of ions will be supported in a near future.
+Addition of ions will be supported very soon.
 
 correspondance:
 siyoungkim@uchicago.edu
