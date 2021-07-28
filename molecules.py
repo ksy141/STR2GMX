@@ -29,6 +29,8 @@ header = '''
 class Molecules:
     
     def __init__(self, mols, toppar, prefix='./toppar/'):
+        if not prefix.endswith('/'):
+            prefix += '/'
         
         if not os.path.exists(prefix):
             os.makedirs(prefix)
@@ -62,8 +64,14 @@ class Molecules:
         self.dbimpropers = []
         self.dbimprwilds = []
         self.atomtypes   = []
+        self.dbcmap      = []
         
-
+           
+        cmap_keys = []
+        cmap_ids  = []
+        for cmap_key in self.toppar.CMAP:
+            cmap_keys.append(cmap_key['atoms'])
+ 
         ### CONNECTIVITY
         for mol in self.mols:
             ag = mol.ag
@@ -153,6 +161,13 @@ class Molecules:
                     if app not in self.dbimprwilds:
                         self.dbimprwilds.append([*i4, q0, cq])
 
+
+            # CMAP
+            for ctype in mol.ctypes:
+                cmap_idx = cmap_keys.index(ctype)
+                if cmap_idx not in cmap_ids: #avoid duplicates
+                    self.dbcmap.append(self.toppar.CMAP[cmap_idx])
+                cmap_ids.append(cmap_idx)
 
 
         ### ATOMTYPES W/O DUPLICATES
@@ -245,7 +260,6 @@ class Molecules:
                 app = [type1, type2, sigma, eps]
                 if not app in self.dbnbfix:
                     self.dbnbfix.append([type1,type2,sigma,eps])
-    
 
 
 
@@ -354,6 +368,21 @@ class Molecules:
                 type1, type2, type3, type4, q0, cq = improper
                 itpFile.write(fmt %(type1, type2, type3, type4, funcForImpropers, q0, cq))
 
+
+        # cmaps
+        if len(self.dbcmap) > 0:
+            itpFile.write('\n[ cmaptypes ]\n')
+            itpFile.write('; i j k l m\n')
+            for icmap in self.dbcmap:
+                type1, type2, type3, type4, type5 = icmap['atoms']
+                ncmap = icmap['ncmap']
+                itpFile.write('%s %s %s %s %s %d %d %d\\\n' % (type1, type2, type3, type4, type5, funcForCmap, ncmap, ncmap))
+                for i, icmapdata in enumerate(icmap['data']):
+                    itpFile.write('%f' % icmapdata)
+                    if i+1 == len(icmap['data']): itpFile.write('\n\n')
+                    elif (i+1) % 10 == 0:         itpFile.write('\\\n')
+                    else:                         itpFile.write(' ')
+
         itpFile.close()
 
                 
@@ -387,7 +416,7 @@ class Molecules:
             
             for i, atom in enumerate(mol.ag):
                 qtot += atom.charge
-                itpFile.write(fmt %(i+1, atom.type, 1, atom.resname, atom.name, i+1, atom.charge, atom.mass, qtot))
+                itpFile.write(fmt %(i+1, atom.type, atom.resid, atom.resname, atom.name, i+1, atom.charge, atom.mass, qtot))
 
 
             if mol.resname.upper() == 'TIP3':
@@ -436,7 +465,16 @@ class Molecules:
                 for improper in mol.isorted:
                     i, j, k, l = improper
                     itpFile.write('%5d %5d %5d %5d %5d\n' % (i+1, j+1, k+1, l+1, funcForImpropers))
+
+            # CMAP
+            if len(mol.csorted) > 0:
+                itpFile.write('\n[ cmap ] \n')
+                itpFile.write('; ai\taj\tak\tal\tam\tfunct\n')
+                for icmap in mol.csorted:
+                    i, j, k, l, m = icmap
+                    itpFile.write('%5d %5d %5d %5d %5d %5d\n' %(i+1, j+1, k+1, l+1, m+1, funcForCmap))
             
+            itpFile.write('\n')
             itpFile.close()
 
 

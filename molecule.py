@@ -44,6 +44,8 @@ class Molecule:
         self.asorted = []
         self.dsorted = []
         self.isorted = []
+        self.csorted = []
+        self.ctypes  = []
         
         ### BONDS
         if len(self.RESIDUE['bonds']) > 0:

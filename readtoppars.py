@@ -8,9 +8,8 @@ from   .atomdata import elements, masses
 
 comment = '!'
 kcal2kJ = 4.184
-items   = ('RESI', 'ATOMS', 'BONDS', 'ANGLES', 'DIHEDRALS', 'IMPROPER', 'NONBONDED', 'NBFIX', 'CMAP', 'PRES') 
-#items   = ('RESI', 'BONDS', 'ANGLES', 'DIHEDRALS', 'IMPROPER', 'NONBONDED', 'NBFIX', 'CMAP', 'PRES') 
-
+items   = ('RESI', 'ATOMS', 'BONDS', 'ANGLES', 'DIHEDRALS', 'IMPROPER', 'NONBONDED', 'NBFIX', 'PRES', 'CMAP') 
+items1  = (        'ATOMS', 'BONDS', 'ANGLES', 'DIHEDRALS', 'IMPROPER', 'NONBONDED', 'NBFIX',               )
 
 class ReadToppars:
 
@@ -82,20 +81,28 @@ class ReadToppars:
                             continue
 
                         if sline.startswith(items):
-                            read_type = sline.split()[0]
-                            saves.append(save)
-                            save = ''
-
                             if sline.startswith(('RESI', 'PRES')):
                                 self.topparmols[toppar_name].append(sline.split()[1])
+                                bA_CMAP = False
+                            
+                            # Hoping CMAP is not the first entity in any files.
+                            if sline.startswith(items1):
+                                bA_CMAP = True
+                            
+                            if sline.startswith('CMAP') and not bA_CMAP:
+                                save += sline + '\n'
+                                continue
+                            
+                            else:
+                                read_type = sline.split()[0]
+                                saves.append(save)
+                                save = ''
+
 
                         if sline.startswith(('END', 'end')):
                             read_type = False
                             saves.append(save)
                             save = ''
-                            #break 
-                            # needed for if/endif in cholesterol...
-                            # two CHL1 models are defined.
                         
                         # READ EACH COMPONENT
                         if read_type:
@@ -168,7 +175,7 @@ class ReadToppars:
                 self._read_NBFIX(ssave)
 
             elif save.startswith('CMAP'):
-                self._read_CMAP(save)
+                self._read_CMAP(ssave)
 
 
 
@@ -183,6 +190,7 @@ class ReadToppars:
         imprs     = []
         angles    = []
         dihedrals = []
+        cmaps     = []
 
         for line in ssave:
             segments = line.split()
@@ -214,6 +222,10 @@ class ReadToppars:
                 for i in range(0, len(segments[1:]), 4):
                     imprs.append([segments[i+1], segments[i+2], segments[i+3], segments[i+4]])
 
+            elif line.startswith('CMAP'):
+                cmaps.append([segments[1], segments[2], segments[3], segments[4], segments[8]])
+
+
         
         if resname in self.RESI.keys() and self.verbose:
             out = 'Duplicated residue name: ' + resname + '\n'
@@ -227,6 +239,7 @@ class ReadToppars:
                               'masses':    np.array(masses),
                               'bonds':     np.array(bonds),
                               'imprs':     np.array(imprs),
+                              'cmaps':     np.array(cmaps),
                               'charges':   np.array(charges),
                               'angles':    np.array(angles),
                               'dihedrals': np.array(dihedrals)}
@@ -403,8 +416,6 @@ class ReadToppars:
 
     def _read_CMAP(self, ssave):
         for line in ssave[1:]:
-            if not line: continue
-            
             segments = line.split()
             try:
                 segments[0] = float(segments[0])
@@ -420,4 +431,7 @@ class ReadToppars:
                 type5 = segments[7]
                 ncmap = int(segments[8])
                 self.CMAP.append(dict(atoms=[type1, type2, type3, type4, type5], ncmap=ncmap, data=[]))
+
+        for i in range(len(self.CMAP)):
+            self.CMAP[i]['data'] = np.array(self.CMAP[i]['data'])
 

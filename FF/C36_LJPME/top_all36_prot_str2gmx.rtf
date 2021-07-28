@@ -1,0 +1,33 @@
+*>>>>>>>>CHARMM36 All-Hydrogen Topology File for Proteins <<<<<<
+*>>>>> Includes phi, psi cross term map (CMAP) correction <<<<<<<
+*>>>>>>>>>>>>>>>>>>>>>>>>>> May 2011 <<<<<<<<<<<<<<<<<<<<<<<<<<<<
+* All comments to the CHARMM web site: www.charmm.org
+*             parameter set discussion forum
+*
+36  1
+
+! Added for STR2GMX
+
+RESI CYSD         0.00
+GROUP   
+ATOM N    NH1    -0.47  !     |       
+ATOM HN   H       0.31  !  HN-N       
+ATOM CA   CT1     0.07  !     |   HB1
+ATOM HA   HB1     0.09  !     |   |  
+GROUP                   !  HA-CA--CB--SG
+ATOM CB   CT2    -0.10  !     |   |     \
+ATOM HB1  HA2     0.09  !     |   HB2    HG1
+ATOM HB2  HA2     0.09  !   O=C           
+ATOM SG   SM     -0.08  !     |           
+GROUP   
+ATOM C    C       0.51
+ATOM O    O      -0.51
+BOND CB CA   SG CB   N HN  N  CA   
+BOND C  CA   C +N  CA HA  CB HB1   
+BOND CB HB2
+DOUBLE O  C   
+IMPR N -C CA HN  C CA +N O   
+CMAP -C  N  CA  C   N  CA  C  +N
+
+END
+
