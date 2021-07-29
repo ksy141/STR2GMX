@@ -1,7 +1,7 @@
 import pandas as pd
 from   .molecule import Molecule
 
-class MultipleMolecule:
+class MultipleMolecules:
 
     def __init__(self):
         pass

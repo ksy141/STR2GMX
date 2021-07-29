@@ -26,7 +26,7 @@ header = '''
 ;;
 '''
 
-class Molecules:
+class Topology:
     
     def __init__(self, mols, toppar, prefix='./toppar/'):
         if not prefix.endswith('/'):
