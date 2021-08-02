@@ -16,6 +16,7 @@ class MultipleMolecules:
         for resname in resnames:
             #print(resname)
             ag = AtomicGroup.select_atoms('resname %s' %resname)
+            if ag.n_atoms == 0: continue
             mol = Molecule(ag, toppar, generate_angles, generate_dihedrals)
             mols.append(mol)
 
