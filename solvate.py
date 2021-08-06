@@ -76,35 +76,39 @@ class Solvate:
         n_atoms = len(waterbox_pos)
         n_res   = int(n_atoms / 3)
 
-        sol = mda.Universe.empty(n_atoms = n_atoms,
-                                 n_residues = n_res,
-                                 atom_resindex = np.repeat(np.arange(n_res), 3),
-                                 residue_segindex = [0] * n_res,
-                                 trajectory = True)
+        solv = mda.Universe.empty(n_atoms = n_atoms,
+                                  n_residues = n_res,
+                                  atom_resindex = np.repeat(np.arange(n_res), 3),
+                                  residue_segindex = [0] * n_res,
+                                  trajectory = True)
 
-        sol.add_TopologyAttr('resnames', ['TIP3'] * n_res)
-        sol.add_TopologyAttr('resids', np.arange(1, n_res + 1))
-        sol.add_TopologyAttr('names', ['OH2', 'H1', 'H2'] * n_res)
-        sol.atoms.positions = waterbox_pos
-
-        newu = mda.Merge(u.atoms, sol.atoms)
-        newu.dimensions = u.dimensions
-
-        newu.add_TopologyAttr('segids', ['ORI', 'NEW'])
-        sel = '(segid ORI) or (segid NEW and not byres (name OH2 and around %d (segid ORI)))' %cutoff
-        ag = newu.select_atoms(sel)
+        solv.add_TopologyAttr('resnames', ['TIP3'] * n_res)
+        solv.add_TopologyAttr('resids', np.arange(1, n_res + 1))
+        solv.add_TopologyAttr('names', ['OH2', 'H1', 'H2'] * n_res)
+        solv.atoms.positions = waterbox_pos
         
-        newu2 = mda.Merge(ag)
-        newu2.dimensions = u.dimensions
+        if u.atoms != 0:
+            newu = mda.Merge(u.atoms, solv.atoms)
+            newu.dimensions = u.dimensions
 
-        newWater = newu2.select_atoms('segid NEW and resname TIP3')
-        newWater.residues.resids = np.arange(maxresid + 1, maxresid + newWater.n_residues + 1)
-        assert newWater.n_atoms == newWater.n_residues * 3, 'atoms missing?'
-        
-        allWater = newu2.select_atoms('resname TIP3')
-        assert allWater.n_atoms == allWater.n_residues * 3, 'atoms missing?'
+            newu.add_TopologyAttr('segids', ['ORI', 'NEW'])
+            sel = '(segid ORI) or (segid NEW and not byres (name OH2 and around %d (segid ORI)))' %cutoff
+            ag = newu.select_atoms(sel)
+            
+            newu2 = mda.Merge(ag)
+            newu2.dimensions = u.dimensions
 
-        return newu2
+            newWater = newu2.select_atoms('segid NEW and resname TIP3')
+            newWater.residues.resids = np.arange(maxresid + 1, maxresid + newWater.n_residues + 1)
+            assert newWater.n_atoms == newWater.n_residues * 3, 'atoms missing?'
+            
+            allWater = newu2.select_atoms('resname TIP3')
+            assert allWater.n_atoms == allWater.n_residues * 3, 'atoms missing?'
+            return newu2
+
+        else:
+            solv.dimensions = u.dimensions
+            return solv
 
 
 
