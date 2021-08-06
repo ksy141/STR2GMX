@@ -87,7 +87,7 @@ class Solvate:
         solv.add_TopologyAttr('names', ['OH2', 'H1', 'H2'] * n_res)
         solv.atoms.positions = waterbox_pos
         
-        if u.atoms != 0:
+        if u.atoms.n_atoms != 0:
             newu = mda.Merge(u.atoms, solv.atoms)
             newu.dimensions = u.dimensions
 
