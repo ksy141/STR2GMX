@@ -310,11 +310,19 @@ class Chain:
                     atoml = atoms[al == names]
                     assert atomi.n_atoms * atomj.n_atoms * atomk.n_atoms * atoml.n_atoms == 1, 'Check C-PATCH improper?'
                     self.isorted.append([atomi[0].index, atomj[0].index, atomk[0].index, atoml[0].index])
+                
+                if resn == 'PRO':
+                    impr1 = np.concatenate([atoms.select_atoms('name N').indices, \
+                                            [prevC.index], \
+                                            atoms.select_atoms('name CA').indices, \
+                                            atoms.select_atoms('name CD').indices])
 
-                impr1 = np.concatenate([atoms.select_atoms('name N').indices, \
-                                        [prevC.index], \
-                                        atoms.select_atoms('name CA').indices, \
-                                        atoms.select_atoms('name HN CD').indices])
+                else:
+                    impr1 = np.concatenate([atoms.select_atoms('name N').indices, \
+                                            [prevC.index], \
+                                            atoms.select_atoms('name CA').indices, \
+                                            atoms.select_atoms('name HN').indices])
+
 
                 assert len(impr1) == 4, 'check impr1'
                 self.isorted.append(impr1)
