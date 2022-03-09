@@ -4,9 +4,10 @@ import os
 import random
 from   MDAnalysis.analysis.distances import distance_array
 
-LL = 5
+LL    = 7
+intra = 2.8
 
-class Solvate_Martini:
+class Solvate_Sirah:
 
     def __init__(self):
         pass
@@ -17,7 +18,7 @@ class Solvate_Martini:
             raise ValueError('pbc defined?')
 
         # Existing water
-        ew = u.select_atoms('resname W')
+        ew = u.select_atoms('resname WT4')
         if ew.n_atoms == 0:
             maxresid = 0
         else:
@@ -32,38 +33,46 @@ class Solvate_Martini:
         for i in range(Nx):
             for j in range(Ny):
                 for k in range(Nz):
-                    water_pos.append([5*i, 5*j, 5*k])
+                    water_pos.append([LL*i, LL*j, LL*k])
 
         waterbox_pos = np.array(water_pos)
         n_atoms = len(waterbox_pos)
 
-        solv = mda.Universe.empty(n_atoms = n_atoms,
+        solv = mda.Universe.empty(n_atoms = n_atoms * 4,
                                   n_residues = n_atoms,
-                                  atom_resindex = np.arange(n_atoms),
+                                  atom_resindex = np.repeat(np.arange(n_atoms), 4),
                                   residue_segindex = [0] * n_atoms,
                                   trajectory = True)
 
         solv.add_TopologyAttr('resnames', ['W'] * n_atoms)
-        solv.add_TopologyAttr('resids', np.arange(1, n_atoms + 1))
-        solv.add_TopologyAttr('names', ['W'] * n_atoms)
-        solv.atoms.positions = waterbox_pos
+        solv.add_TopologyAttr('resids', np.arange(maxresid + 1, maxresid + n_atoms + 1))
+        solv.add_TopologyAttr('names', ['WN1', 'WN2', 'WP1', 'WP2'] * n_atoms)
+
+        water_positions = np.repeat(waterbox_pos, 4, axis=0)
+        first  = [0, 0, intra]
+        second = [0, 2 * np.sqrt(2) / 3 * intra, -intra / 3]
+        third  = [+ np.sqrt(2) / np.sqrt(3) * intra, - np.sqrt(2) / 3 * intra, - intra / 3]
+        fourth = [- np.sqrt(2) / np.sqrt(3) * intra, - np.sqrt(2) / 3 * intra, - intra / 3]
+        single = [first, second, third, fourth]
+
+        solv.atoms.positions = water_positions + np.array(single * n_atoms) + np.array([LL, LL, LL])/2
         
         if u.atoms.n_atoms != 0:
             newu = mda.Merge(u.atoms, solv.atoms)
             newu.dimensions = u.dimensions
 
             newu.add_TopologyAttr('segids', ['ORI', 'NEW'])
-            sel = '(segid ORI) or (segid NEW and not byres (name W and around %d (segid ORI)))' %cutoff
+            sel = '(segid ORI) or (segid NEW and not byres (resname WT4 and around %d (segid ORI)))' %cutoff
             ag = newu.select_atoms(sel)
             
             newu2 = mda.Merge(ag)
             newu2.dimensions = u.dimensions
 
-            newWater = newu2.select_atoms('segid NEW and resname W')
+            newWater = newu2.select_atoms('segid NEW and resname WT4')
             newWater.residues.resids = np.arange(maxresid + 1, maxresid + newWater.n_residues + 1)
             assert newWater.n_atoms == newWater.n_residues, 'n_atoms != n_residues?'
             
-            allWater = newu2.select_atoms('resname W')
+            allWater = newu2.select_atoms('resname WT4')
             assert allWater.n_atoms == allWater.n_residues, 'n_atoms != n_residues?'
             return newu2
 
