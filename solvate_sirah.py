@@ -44,7 +44,7 @@ class Solvate_Sirah:
                                   residue_segindex = [0] * n_atoms,
                                   trajectory = True)
 
-        solv.add_TopologyAttr('resnames', ['W'] * n_atoms)
+        solv.add_TopologyAttr('resnames', ['WT4'] * n_atoms)
         solv.add_TopologyAttr('resids', np.arange(maxresid + 1, maxresid + n_atoms + 1))
         solv.add_TopologyAttr('names', ['WN1', 'WN2', 'WP1', 'WP2'] * n_atoms)
 
@@ -70,10 +70,10 @@ class Solvate_Sirah:
 
             newWater = newu2.select_atoms('segid NEW and resname WT4')
             newWater.residues.resids = np.arange(maxresid + 1, maxresid + newWater.n_residues + 1)
-            assert newWater.n_atoms == newWater.n_residues, 'n_atoms != n_residues?'
+            assert newWater.n_atoms == newWater.n_residues * 4, 'n_atoms != n_residues?'
             
             allWater = newu2.select_atoms('resname WT4')
-            assert allWater.n_atoms == allWater.n_residues, 'n_atoms != n_residues?'
+            assert allWater.n_atoms == allWater.n_residues * 4, 'n_atoms != n_residues?'
             return newu2
 
         else:
