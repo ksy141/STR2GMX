@@ -11,7 +11,7 @@ STR2GMX reads a whole structure and both CHARMM parameter and topology files.
 
 You can also easily solvate systems or add ions with Solvate class.
 
-STR2GMX is written by Siyoung Kim [siyoungkim@uchicago.edu]
+STR2GMX is written by Siyoung Kim [kkssy141@gmail.com]
 
 
 [ INSTALL ]
