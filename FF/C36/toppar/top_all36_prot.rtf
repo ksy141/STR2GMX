@@ -1327,6 +1327,22 @@ DONOR HN2 N
 IC HN1  CA   *N   CD    0.0000  0.0000  120.0000  0.0000  0.0000
 IC HN2  CA   *N   HN1   0.0000  0.0000  120.0000  0.0000  0.0000
 
+PRES PROQ         1.00 ! Proline N-Terminal
+GROUP                  ! use in generate statement
+ATOM N    NP     -0.07 !   HA
+ATOM HT1  HC      0.24 !   |
+ATOM HT2  HC      0.24 !  -CA   HT1
+ATOM CD   CP3     0.16 !  /  \ /
+ATOM HD1  HA2     0.09 !       N(+)
+ATOM HD2  HA2     0.09 !      / \
+ATOM CA   CP1     0.16 !  -CD    HT2
+ATOM HA   HB1     0.09 !   | \
+BOND HT1 N HT2 N       !  HD1 HD2
+DONOR HT1 N   
+DONOR HT2 N   
+IC HT1  CA   *N   CD    0.0000  0.0000  120.0000  0.0000  0.0000
+IC HT2  CA   *N   HT1   0.0000  0.0000  120.0000  0.0000  0.0000
+
 PRES ACE          0.00 ! acetylated N-terminus
                        ! do NOT use to create dipeptides, see ACED
 GROUP                  ! use in generate statement

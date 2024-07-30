@@ -57,7 +57,11 @@ class Chain:
                 NPATCH = 'GLYP'
             else:
                 NPATCH = 'NTER'
+        if np.all(np.isin(['HN1', 'HN2'], atnames)) and self.u.residues[0].resname == 'PRO':
+            NPATCH = 'PROP'
 
+        if np.all(np.isin(['HT1', 'HT2'], atnames)) and self.u.residues[0].resname == 'PRO':
+            NPATCH = 'PROQ'
 
         if ('HT1' in atnames) and ('HT2' in atnames) and ('HT3' not in atnames):
             if self.u.residues[0].resname == 'GLY':
